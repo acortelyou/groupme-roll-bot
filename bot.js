@@ -3,8 +3,8 @@ var HTTPS = require('https');
 var botID = process.env.BOT_ID,
 botCommand =  /^\/roll/;
 //roll
-//d4, d6, d8, d10, d20
-//min max
+//d4, d6, d8, d10, d20 [mod]
+//min max [mod]
 // @User rolled: val
 
 
@@ -20,49 +20,36 @@ function respond() {
 }
 
 function commandHandler(relThis, command){
-  var rollCount = 0, //command.text.split(' ')[1] ? command.text.split(' ')[1] : 1,
-      rollMin = 0,
-      rollMax = 0;
-/*
-Default vals
-      rollCount = 1; //command.text.split(' ')[1] ? command.text.split(' ')[1] : 1,
-      rollMin = 1;
-      rollMax = 100;
-*/
-if(!command.text.split(' ')[1]){
-//Pure Roll
-  rollCount = 1;
-  rollMin = 1;
-  rollMax = 100;
-} else if(command.text.split(' ')[1] && command.text.split(' ')[1].split('d')[1]){
-//dice setup 
-  rollCount = parseInt(command.text.split(' ')[1].split('d')[0]);
-  rollMin = 1;
-  rollMax = parseInt(command.text.split(' ')[1].split('d')[1]);
-} else if(command.text.split(' ')[1] && command.text.split(' ')[2]){
-//min max
-  rollCount = 1;
-  rollMin = parseInt(command.text.split(' ')[1]);
-  rollMax = parseInt(command.text.split(' ')[2]);
-} else {
-  rollCount = 1;
-  rollMin = 0;
-  rollMax = 0;
-}
-  console.log('Count: ' + rollCount + ", Min: " + rollMin + ", Max: " + rollMax);
+  var rollCount = 1, rollMin = 1, rollMax = 100, rollMod = NaN;
+
+  if (args = command.text.match(/(\d+)[dD](\d+)(\s+[+-]?\d+)?/)) {
+      [rollCount, rollMax, rollMod] = args.slice(1).map(Number);
+  } else if (args = command.text.match(/(\d+)\s+(\d+)(\s+\d+)?/)) {
+      [rollMin, rollMax, rollMod] = args.slice(1).map(Number);
+  }  
+
+  var rollResult = roll(rollCount, rollMin, rollMax, rollMod);
+  var rollString = 
+    "[" + 
+    (rollCount == 1 ? '' : (rollCount + "x ")) +
+    (rollMin + "-" + rollMax) +
+    (isNaN(rollMod) ? '' : (rollMod < 0 ? (" " + rollMod) : (" +" + rollMod))) +
+    "]";
+
+  console.log({rollCount, rollMin, rollMax, rollMod, rollResult, rollString});
   relThis.res.writeHead(200);
-  postMessage(("@" + command.name + " rolled: " + roll(rollCount, rollMin, rollMax) + " [" + rollMin + "-" + rollMax + "]"), command.name, command.user_id);
+  postMessage("@" + command.name + " rolled: " + rollResult + " " + rollString, command.name, command.user_id);
   relThis.res.end();
+  
 }
 
-function roll(count, min, max){
+function roll(count, min, max, mod){
   var result = 0;
-  if(count === 1){
-    result = min + Math.floor(Math.random()*(max-min+1));
-  } else {
-    for(i = 0; i < count; i++){
-      result = result + (min + Math.floor(Math.random()*(max-min+1)));
-    }
+  for (var i = 0; i < count; i++) {
+    result += (min + Math.floor(Math.random()*(max-min+1)));
+  }
+  if (!isNaN(mod)) {
+    result += mod;
   }
   return result;
 }
