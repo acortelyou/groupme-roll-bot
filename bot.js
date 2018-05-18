@@ -36,7 +36,14 @@ function commandHandler(relThis, command){
     (isNaN(rollMod) ? '' : (rollMod < 0 ? (" " + rollMod) : (" +" + rollMod))) +
     "]";
 
-  console.log({rollCount, rollMin, rollMax, rollMod, rollResult, rollString});
+  console.log({
+    Count: rollCount,
+    Min: rollMin,
+    Max: rollMax,
+    Mod: rollMod,
+    Result: rollResult,
+    String: rollString
+  });
   relThis.res.writeHead(200);
   postMessage("@" + command.name + " rolled: " + rollResult + " " + rollString, command.name, command.user_id);
   relThis.res.end();
