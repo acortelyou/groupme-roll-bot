@@ -20,45 +20,57 @@ function respond() {
 }
 
 function commandHandler(relThis, command){
-  var rollCount = 1, rollMin = 1, rollMax = 100, rollMod = NaN;
 
-  if (args = command.text.match(/(\d+)[dD](\d+)(\s+[+-]?\d+)?/)) {
-      [rollCount, rollMax, rollMod] = args.slice(1).map(Number);
-  } else if (args = command.text.match(/(\d+)\s+(\d+)(\s+\d+)?/)) {
-      [rollMin, rollMax, rollMod] = args.slice(1).map(Number);
-  }  
+  var msg = "@" + command.name + " rolled ";
 
-  var rollResult = roll(rollCount, rollMin, rollMax, rollMod);
-  var rollString = 
-    "[" + 
-    (rollCount == 1 ? '' : (rollCount + "x ")) +
-    (rollMin + "-" + rollMax) +
-    (isNaN(rollMod) ? '' : (rollMod < 0 ? (" " + rollMod) : (" +" + rollMod))) +
-    "]";
+  var count = 1, min = 1, max = 100, mod = NaN, sum = 0, rolls = [];
 
-  console.log({
-    Count: rollCount,
-    Min: rollMin,
-    Max: rollMax,
-    Mod: rollMod,
-    Result: rollResult,
-    String: rollString
-  });
+  if (args = command.text.match(/(\d+)[dD](\d+)(\s*[+-]?\d+)?/)) {
+
+      [count, max, mod] = args.slice(1).map(Number);
+
+      msg += count + "d" + max;
+
+  } else if (args = command.text.match(/(\d+)[\s-]+(\d+)(\s*[+-]?\d+)?/)) {
+
+      [min, max, mod] = args.slice(1).map(Number);
+
+      msg += min + "-" + max;
+
+  }
+
+  for (var i = 0; i < count; i++) {
+
+    var roll = min + Math.floor(Math.random()*(max-min+1));
+
+    rolls.push(roll);
+
+    sum += roll;
+
+  }
+
+  if (!isNaN(mod)) {
+
+    sum += mod;
+
+    msg += mod < 0 ? mod : ("+" + mod);
+
+  }
+
+  msg += ": " + sum;
+
+  if (count > 1) {
+
+    msg += " [" + rolls.join(" ") + "]";
+
+  }
+
+  console.log({count, min, max, mod, sum, rolls, msg});
+  
   relThis.res.writeHead(200);
-  postMessage("@" + command.name + " rolled: " + rollResult + " " + rollString, command.name, command.user_id);
+  postMessage(msg, command.name, command.user_id);
   relThis.res.end();
   
-}
-
-function roll(count, min, max, mod){
-  var result = 0;
-  for (var i = 0; i < count; i++) {
-    result += (min + Math.floor(Math.random()*(max-min+1)));
-  }
-  if (!isNaN(mod)) {
-    result += mod;
-  }
-  return result;
 }
 
 function postMessage(message, name, id) {
