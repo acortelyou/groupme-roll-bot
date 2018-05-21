@@ -59,7 +59,7 @@ function commandHandler(relThis, command){
 
   msg += ": " + sum;
 
-  if (count > 1 && count < 50) {
+  if ((count > 1 || !isNaN(mod)) && count < 50) {
 
     msg += " [" + rolls.join(" ") + "]";
 
