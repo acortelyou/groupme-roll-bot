@@ -62,8 +62,9 @@ function commandHandler(relThis, command){
   console.log({count, min, max, pre, post, sum, rolls, msg});
   
   relThis.res.writeHead(200);
-  postMessage(msg, command.name, command.user_id);
   relThis.res.end();
+  
+  postMessage(msg, command.name, command.user_id);
   
 }
 
