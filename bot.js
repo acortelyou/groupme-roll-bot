@@ -2,10 +2,6 @@ var HTTPS = require('https');
 
 var botID = process.env.BOT_ID,
 botCommand =  /^\/roll/;
-//roll
-//d4, d6, d8, d10, d20 [mod]
-//min max [mod]
-// @User rolled: val
 
 
 function respond() {
@@ -19,23 +15,27 @@ function respond() {
   }
 }
 
+function toSignedString(num) {
+   return '' + ((isNaN(num) || num == 0) ? '' : (num < 0 ? num : ('+' + num)));
+}
+
 function commandHandler(relThis, command){
 
   var msg = "@" + command.name + " rolled ";
 
-  var count = 1, min = 1, max = 100, mod = NaN, sum = 0, rolls = [];
+  var count = 1, min = 1, max = 100, pre = NaN, post = NaN, sum = 0, rolls = [];
 
-  if (args = command.text.match(/(\d+)[dD](\d+)(\s*[+-]?\d+)?/)) {
+  if (args = command.text.match(/(\d+)(\s*[+-]?\s*\d+)?[dD](\d+)(\s*[+-]?\s*\d+)?/)) {
 
-      [count, max, mod] = args.slice(1).map(Number);
+      [count, pre, max, post] = args.slice(1).map(x => parseInt(typeof x == "string" ? x.replace(/\s/g, '') : x));
 
-      msg += count + "d" + max;
+      msg += count + toSignedString(pre) + "d" + max + toSignedString(post);
 
-  } else if (args = command.text.match(/(\d+)[\s-]+(\d+)(\s*[+-]?\d+)?/)) {
+  } else if (args = command.text.match(/(\d+)[\s-]+(\d+)(\s*[+-]?\s*\d+)?/)) {
 
-      [min, max, mod] = args.slice(1).map(Number);
+      [min, max, post] = args.slice(1).map(x => parseInt(typeof x == "string" ? x.replace(/\s/g, '') : x));
 
-      msg += min + "-" + max;
+      msg += min + "-" + max + toSignedString(post);
 
   }
 
@@ -45,27 +45,21 @@ function commandHandler(relThis, command){
 
     rolls.push(roll);
 
-    sum += roll;
-
+    sum += roll + (isNaN(pre) ? 0 : pre);
+    
   }
-
-  if (!isNaN(mod)) {
-
-    sum += mod;
-
-    msg += mod < 0 ? mod : ("+" + mod);
-
-  }
+  
+  sum += (isNaN(post) ? 0 : post);
 
   msg += ": " + sum;
 
-  if ((count > 1 || !isNaN(mod)) && count < 50) {
+  if ((count > 1 || !isNaN(pre) || !isNaN(post)) && count < 50) {
 
     msg += " [" + rolls.join(" ") + "]";
 
   }
 
-  console.log({count, min, max, mod, sum, rolls, msg});
+  console.log({count, min, max, pre, post, sum, rolls, msg});
   
   relThis.res.writeHead(200);
   postMessage(msg, command.name, command.user_id);
