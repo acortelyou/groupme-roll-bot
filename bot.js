@@ -16,26 +16,31 @@ function respond() {
 }
 
 function toSignedString(num) {
-   return '' + ((isNaN(num) || num == 0) ? '' : (num < 0 ? num : ('+' + num)));
+  if (isNaN(num) || num == 0) return '';
+  if (num < 0) return '' + num;
+  return '+' + num;
+}
+
+function toNumber(str) {
+ if (typeof str == "string") str = str.replace(/\s/g, '');
+ return parseInt(str);
 }
 
 function commandHandler(relThis, command){
 
-  var msg = "@" + command.name + " rolled ";
-
-  var count = 1, min = 1, max = 100, pre = NaN, post = NaN, sum = 0, rolls = [];
+  var count = 1, min = 1, max = 100, pre = NaN, post = NaN, msg = "1-100", rolls = [], sum = 0;
 
   if (args = command.text.match(/(\d+)(\s*[+-]?\s*\d+)?[dD](\d+)(\s*[+-]?\s*\d+)?/)) {
 
-      [count, pre, max, post] = args.slice(1).map(x => parseInt(typeof x == "string" ? x.replace(/\s/g, '') : x));
+      [count, pre, max, post] = args.slice(1).map(toNumber);
 
-      msg += count + toSignedString(pre) + "d" + max + toSignedString(post);
+      msg = count + toSignedString(pre) + "d" + max + toSignedString(post);
 
   } else if (args = command.text.match(/(\d+)[\s-]+(\d+)(\s*[+-]?\s*\d+)?/)) {
 
-      [min, max, post] = args.slice(1).map(x => parseInt(typeof x == "string" ? x.replace(/\s/g, '') : x));
+      [min, max, post] = args.slice(1).map(toNumber);
 
-      msg += min + "-" + max + toSignedString(post);
+      msg = min + "-" + max + toSignedString(post);
 
   }
 
@@ -45,13 +50,15 @@ function commandHandler(relThis, command){
 
     rolls.push(roll);
 
-    sum += roll + (isNaN(pre) ? 0 : pre);
+    sum += roll;
+    
+    if (!isNaN(pre)) sum += pre;
     
   }
   
-  sum += (isNaN(post) ? 0 : post);
+  if (!isNaN(post)) sum += post;
 
-  msg += ": " + sum;
+  msg = "@" + command.name + " rolled " + msg + ": " + sum;
 
   if ((count > 1 || !isNaN(pre) || !isNaN(post)) && count < 50) {
 
