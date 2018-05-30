@@ -71,7 +71,7 @@ function commandHandler(relThis, command){
   relThis.res.writeHead(200);
   relThis.res.end();
   
-  setTimeout(function(){ postMessage(msg, command.name, command.user_id); }, 500
+  setTimeout(function(){ postMessage(msg, command.name, command.user_id); }, 500);
   
 }
 
