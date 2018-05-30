@@ -58,7 +58,7 @@ function commandHandler(relThis, command){
   
   if (!isNaN(post)) sum += post;
 
-  msg = "@" + command.name + " rolled " + msg + ": " + sum;
+  msg = "" + command.name + " rolled " + msg + ": " + sum;
 
   if ((count > 1 || !isNaN(pre) || !isNaN(post)) && count < 50) {
 
@@ -71,7 +71,7 @@ function commandHandler(relThis, command){
   relThis.res.writeHead(200);
   relThis.res.end();
   
-  setTimeout(function(){ postMessage(msg, command.name, command.user_id); }, 250);
+  setTimeout(function(){ postMessage(msg, command.name, command.user_id); }, 500
   
 }
 
