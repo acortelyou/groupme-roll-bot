@@ -42,9 +42,9 @@ function commandHandler(relThis, command){
 
       msg = min + "-" + max + toSignedString(post);
 
-  } else if (args = command.text.match(/[Mm]{2,} (\d+)?/)) {
+  } else if (args = command.text.match(/[Mm]{2,}\s*(\d+)?/)) {
 
-    var level = args.slice(1).map(toNumber) || 1;
+    var [level] = args.slice(1).map(toNumber) || 1;
     max = 4;
     count = 2 + level;
     pre = 1;
@@ -60,11 +60,11 @@ function commandHandler(relThis, command){
     rolls.push(roll);
 
     sum += roll;
-    
+
     if (!isNaN(pre)) sum += pre;
-    
+
   }
-  
+
   if (!isNaN(post)) sum += post;
 
   msg = "" + command.name + " rolled " + msg + ": " + sum;
@@ -76,12 +76,12 @@ function commandHandler(relThis, command){
   }
 
   console.log({count, min, max, pre, post, sum, rolls, msg});
-  
+
   relThis.res.writeHead(200);
   relThis.res.end();
-  
+
   setTimeout(function(){ postMessage(msg, command.name, command.user_id); }, 500);
-  
+
 }
 
 function postMessage(message, name, id) {
