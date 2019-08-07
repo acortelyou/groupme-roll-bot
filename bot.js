@@ -1,13 +1,13 @@
 var HTTPS = require('https');
 
 var botID = process.env.BOT_ID,
-botCommand =  /^\/roll/;
+  botCommand = /^\/roll/;
 
 
 function respond() {
   var request = JSON.parse(this.req.chunks[0]);
-  if(request.text && botCommand.test(request.text)){
-      commandHandler(this, request);
+  if (request.text && botCommand.test(request.text)) {
+    commandHandler(this, request);
   } else {
     console.log("don't care");
     this.res.writeHead(200);
@@ -22,40 +22,59 @@ function toSignedString(num) {
 }
 
 function toNumber(str) {
- if (typeof str == "string") str = str.replace(/\s/g, '');
- return parseInt(str);
+  if (typeof str == "string") str = str.replace(/\s/g, '');
+  return parseInt(str);
 }
 
-function commandHandler(relThis, command){
+function commandHandler(relThis, command) {
 
-  var count = 1, min = 1, max = 100, pre = NaN, post = NaN, msg = "1-100", rolls = [], sum = 0;
+  var count = 1,
+    min = 1,
+    max = 100,
+    pre = NaN,
+    post = NaN,
+    msg = "1-100",
+    rolls = [],
+    level = 1,
+    sum = 0;
 
   if (args = command.text.match(/(\d+)(\s*[+-]?\s*\d+)?[dD](\d+)(\s*[+-]?\s*\d+)?/)) {
 
-      [count, pre, max, post] = args.slice(1).map(toNumber);
+    [count, pre, max, post] = args.slice(1).map(toNumber);
 
-      msg = count + toSignedString(pre) + "d" + max + toSignedString(post);
+    msg = count + toSignedString(pre) + "d" + max + toSignedString(post);
 
   } else if (args = command.text.match(/(\d+)[\s-]+(\d+)(\s*[+-]?\s*\d+)?/)) {
 
-      [min, max, post] = args.slice(1).map(toNumber);
+    [min, max, post] = args.slice(1).map(toNumber);
 
-      msg = min + "-" + max + toSignedString(post);
+    msg = min + "-" + max + toSignedString(post);
+
+  }
+
+  else if (args = command.text.match(/[mM]+ (\d+)?/)) {
+
+    level = args.slice(1).map(toNumber);
+    max = 4;
+    count = 2 + level;
+    pre = "+ 1";
+
+    msg = "Magic Missle Level " + level;
 
   }
 
   for (var i = 0; i < count; i++) {
 
-    var roll = min + Math.floor(Math.random()*(max-min+1));
+    var roll = min + Math.floor(Math.random() * (max - min + 1));
 
     rolls.push(roll);
 
     sum += roll;
-    
+
     if (!isNaN(pre)) sum += pre;
-    
+
   }
-  
+
   if (!isNaN(post)) sum += post;
 
   msg = "" + command.name + " rolled " + msg + ": " + sum;
@@ -66,13 +85,25 @@ function commandHandler(relThis, command){
 
   }
 
-  console.log({count, min, max, pre, post, sum, rolls, msg});
-  
+  console.log({
+    count,
+    min,
+    max,
+    pre,
+    post,
+    sum,
+    rolls,
+    level,
+    msg
+  });
+
   relThis.res.writeHead(200);
   relThis.res.end();
-  
-  setTimeout(function(){ postMessage(msg, command.name, command.user_id); }, 500);
-  
+
+  setTimeout(function() {
+    postMessage(msg, command.name, command.user_id);
+  }, 500);
+
 }
 
 function postMessage(message, name, id) {
@@ -84,33 +115,31 @@ function postMessage(message, name, id) {
   };
 
   body = {
-    "bot_id" : botID,
-    "text" : message,
-    "attachments": [
-    {
+    "bot_id": botID,
+    "text": message,
+    "attachments": [{
       "type": "mentions",
       "user_ids": [id],
       "loci": [
-        [0,name.length + 1]
+        [0, name.length + 1]
       ]
 
-    }
-    ]
+    }]
   };
 
   botReq = HTTPS.request(options, function(res) {
-      if(res.statusCode == 202) {
-        //neat
-      } else {
-        console.log('rejecting bad status code ' + res.statusCode);
-      }
+    if (res.statusCode == 202) {
+      //neat
+    } else {
+      console.log('rejecting bad status code ' + res.statusCode);
+    }
   });
 
   botReq.on('error', function(err) {
-    console.log('error posting message '  + JSON.stringify(err));
+    console.log('error posting message ' + JSON.stringify(err));
   });
   botReq.on('timeout', function(err) {
-    console.log('timeout posting message '  + JSON.stringify(err));
+    console.log('timeout posting message ' + JSON.stringify(err));
   });
   botReq.end(JSON.stringify(body));
 }
