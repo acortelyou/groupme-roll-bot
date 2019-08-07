@@ -44,7 +44,7 @@ function commandHandler(relThis, command){
 
   } else if (args = command.text.match(/[Mm]{2,} (\d+)?/)) {
 
-    var level = args.slice(1).map(toNumber) || 1;
+    var [level] = args.slice(1).map(toNumber) || 1;
     max = 4;
     count = 2 + level;
     pre = 1;
