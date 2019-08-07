@@ -42,6 +42,15 @@ function commandHandler(relThis, command){
 
       msg = min + "-" + max + toSignedString(post);
 
+  } else if (args = command.text.match(/[Mm]{2,} (\d+)?/)) {
+
+    var level = args.slice(1).map(toNumber) || 1;
+    max = 4;
+    count = 2 + level;
+    pre = 1;
+
+    msg = "Magic Missle Level " + level;
+
   }
 
   for (var i = 0; i < count; i++) {
