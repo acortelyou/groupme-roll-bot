@@ -42,7 +42,7 @@ function commandHandler(relThis, command){
 
       msg = min + "-" + max + toSignedString(post);
 
-  } else if (args = command.text.match(/[mM]+ (\d+)?/)) {
+  } else if (args = command.text.match(/[Mm]{2,} (\d+)?/)) {
 
     var level = args.slice(1).map(toNumber) || 1;
     max = 4;
